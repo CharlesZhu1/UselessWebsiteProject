@@ -236,20 +236,26 @@
         }
 
         // Buy upgrade to increase earnings per click
-        function buyUpgrade() {
-            let upgradeCost = 50 + inflation;
-            if (money >= upgradeCost) {
-                money -= upgradeCost;
-                earningsPerClick += 5;
-                inflation += 25;
-                document.getElementById("money").innerText = Math.round(money); // Round money display
-                localStorage.setItem("money", money);
-                localStorage.setItem("earningsPerClick", earningsPerClick);
-                localStorage.setItem("inflation", inflation);
-            } else {
-                alert("Not enough money!");
-            }
-        }
+     function buyUpgrade() {
+    let upgradeCost = 50 + inflation; // Inflation increases the cost
+
+    if (money >= upgradeCost) {
+        money -= upgradeCost;
+        earningsPerClick += 5;
+        inflation += 25; // Increase cost by $25
+
+        // Update the button text to reflect the new cost
+        document.querySelector(".shop button").innerText = `Buy Upgrade ($${50 + inflation}) - +$5 per click`;
+
+        document.getElementById("money").innerText = Math.round(money);
+        localStorage.setItem("money", money);
+        localStorage.setItem("earningsPerClick", earningsPerClick);
+        localStorage.setItem("inflation", inflation);
+    } else {
+        alert("Not enough money!");
+    }
+}
+
 
         // Invest money into stocks
         function investMoney() {
@@ -272,6 +278,66 @@
     document.getElementById("investment").innerText = Math.round(investment * stockPrice);
     localStorage.setItem("stockPrice", stockPrice);
 }
+
+// List of random names
+const randomNames = ["John", "Alice", "Michael", "Sarah", "Daniel", "Emily", "David", "Sophia", "James", "Emma"];
+
+// Function to trigger random offers
+function triggerRandomOffer() {
+    const randomPerson = randomNames[Math.floor(Math.random() * randomNames.length)]; // Pick a random name
+    const eventType = Math.random(); // Random event type
+
+    if (eventType < 0.7) { 
+        // 70% chance to offer free money ($150 - $1200)
+        const randomMoney = Math.floor(Math.random() * (1200 - 150 + 1)) + 150;
+        document.getElementById("popup-message").innerText = `${randomPerson} is offering you $${randomMoney}. Do you accept?`;
+        document.getElementById("accept-offer").onclick = function () {
+            money += randomMoney;
+            document.getElementById("money").innerText = Math.round(money);
+            localStorage.setItem("money", money);
+            closePopup();
+        };
+    } else { 
+        // 30% chance to offer a gambling event for $4500
+        if (money >= 4500) {
+            document.getElementById("popup-message").innerText = `${randomPerson} invites you to gamble $4500. If you win, you get double! Do you accept?`;
+            document.getElementById("accept-offer").onclick = function () {
+                money -= 4500;
+                const gambleWin = Math.random() < 0.5; // 50% chance to win
+                if (gambleWin) {
+                    money += 9000; // Double the money
+                    alert("You won the gamble! +$9000");
+                } else {
+                    alert("You lost the gamble! -$4500");
+                }
+                document.getElementById("money").innerText = Math.round(money);
+                localStorage.setItem("money", money);
+                closePopup();
+            };
+        } else {
+            return; // If not enough money, no event happens
+        }
+    }
+
+    // Show the popup
+    document.getElementById("popup").style.display = "block";
+}
+
+// Close popup function
+function closePopup() {
+    document.getElementById("popup").style.display = "none";
+}
+
+// Randomly trigger events between 8-12 seconds
+function startRandomEvents() {
+    setTimeout(function () {
+        triggerRandomOffer();
+        startRandomEvents(); // Recursively call to keep the events going
+    }, Math.random() * (12000 - 8000) + 8000);
+}
+
+// Start the event loop
+startRandomEvents();
 
 // Update stock price every 5 seconds
 setInterval(updateStockPrice, 5000);
@@ -310,4 +376,4 @@ setInterval(updateStockPrice, 5000);
     </script>
 
 </body>
-</html>
+</html> 
