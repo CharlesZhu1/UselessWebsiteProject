@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mute Button Game</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #f0f8ff;
+            overflow: hidden;
+            transition: background-color 0.3s ease;
+        }
+        h1 {
+            font-size: 2.5rem;
+            text-align: center;
+            color: #333;
+        }
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .mute-button {
+            background-color: #ff4d4d;
+            color: white;
+            border: none;
+            font-size: 1.5rem;
+            padding: 15px 30px;
+            cursor: pointer;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(255, 0, 0, 0.4);
+            position: absolute;
+            transition: transform 0.3s ease;
+        }
+        .mute-button:hover {
+            transform: scale(1.1);
+        }
+        .level {
+            margin-top: 20px;
+            font-size: 1.5rem;
+            color: #333;
+        }
+        .game-over {
+            font-size: 3rem;
+            color: #ff4d4d;
+            text-align: center;
+        }
+            #leave-button {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 2rem;
+            color: red;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+        }
+
+        #leave-button:hover {
+            color: darkred;
+        }
+    </style>
+</head>
+<body>
+
+<div class="game-container">
+    <h1>Mute the Annoying Sound!</h1>
+    <div class="level" id="levelDisplay">Level: 1</div>
+    <button class="mute-button" id="startButton">Start</button>
+      <button id="leave-button" onclick="leaveGame()">X</button>
+</div>
+
+<audio id="annoyingSound" loop>
+    <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mp3">
+    Your browser does not support the audio element.
+</audio>
+
+<script>
+    let level = 1;
+    let soundPlaying = false;
+    let muteButton = document.getElementById('startButton');
+    let annoyingSound = document.getElementById('annoyingSound');
+    let levelDisplay = document.getElementById('levelDisplay');
+    let buttonSpeed = 2000;  // Speed at which the button will move (in milliseconds)
+    let gameStarted = false;  // Track if the game has started
+
+    // Start the sound
+    function startSound() {
+        annoyingSound.play();
+        soundPlaying = true;
+        muteButton.textContent = "Mute";  // Change button to "Mute"
+    }
+
+    // Stop the sound
+    function stopSound() {
+        annoyingSound.pause();
+        annoyingSound.currentTime = 0;  // Restart from the beginning
+        soundPlaying = false;
+        muteButton.textContent = "Unmute";  // Change button to "Unmute"
+    }
+
+    // Handle button click
+    muteButton.addEventListener('click', function() {
+        if (!gameStarted) {
+            // If game hasn't started yet, start the sound and change button text to "Mute"
+            startSound();
+            muteButton.textContent = "Mute";  // Ensure button text is "Mute" after starting the game
+            gameStarted = true;
+        } else {
+            // If game has started, mute or unmute the sound
+            if (soundPlaying) {
+                stopSound();
+                levelUp();
+            } else {
+                startSound();
+            }
+        }
+    });
+
+    // Update to next level
+    function levelUp() {
+        level++;
+        levelDisplay.textContent = `Level: ${level}`;
+        updateGame();
+    }
+
+    // Change game behavior as level increases
+    function updateGame() {
+        // Randomize the speed of the mute button movement and button's position
+        if (level > 1) {
+            buttonSpeed = Math.max(1000, buttonSpeed - 100);  // Decrease movement time (speed up)
+        }
+
+        // Increase sound speed/difficulty by changing the sound frequency or a different sound
+        if (level > 5) {
+            annoyingSound.src = "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3"; // Switch to a more annoying sound
+        }
+
+        // Flashing background for harder levels
+        if (level % 3 === 0) {
+            document.body.style.backgroundColor = `#ffeb3b`;  // Yellow background to signal next level
+            setTimeout(() => {
+                document.body.style.backgroundColor = '#f0f8ff';  // Reset to original
+            }, 500);
+        }
+
+        // Add a game over condition after level 10
+        if (level > 10) {
+            gameOver();
+        }
+
+        // Start moving the button every `buttonSpeed` milliseconds
+        moveMuteButton();
+    }
+
+    // Move the mute button to a random position
+    function moveMuteButton() {
+        setInterval(() => {
+            let newX = Math.random() * (window.innerWidth - muteButton.offsetWidth);
+            let newY = Math.random() * (window.innerHeight - muteButton.offsetHeight);
+            muteButton.style.left = `${newX}px`;
+            muteButton.style.top = `${newY}px`;
+        }, buttonSpeed);
+    }
+
+    // End the game when level exceeds 10
+    function gameOver() {
+        muteButton.style.display = 'none';  // Hide the mute button
+        levelDisplay.textContent = 'Game Over!';
+        document.body.style.backgroundColor = '#ff4d4d';  // Red background to signify game over
+    }
+     function leaveGame() {
+            if (confirm("Are you sure you want to leave the game?")) {
+                window.location.href = "index.html"; // Redirect to the main menu
+            }
+        }
+
+    // Initialize the game
+    updateGame();
+</script>
+
+</body>
+</html>

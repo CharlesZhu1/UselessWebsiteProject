@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rhythm Game</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            text-align: center;
+            background: linear-gradient(135deg, #5c258d, #4389a2);
+            color: #f3f4f6;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        h1 {
+            margin-top: 20px;
+            font-size: 48px;
+            text-shadow: 2px 2px 10px rgba(0, 0, 0, 0.7);
+        }
+
+        p {
+            font-size: 20px;
+            margin-top: 10px;
+        }
+
+        #gameCanvas {
+            border-radius: 15px;
+            border: 2px solid #fff;
+            margin-top: 40px;
+            background: rgba(0, 0, 0, 0.6);
+        }
+
+        .score-board, .combo-board, .lives-board {
+            font-size: 24px;
+            position: absolute;
+            top: 20px;
+            left: 20px;
+        }
+
+        .combo-board {
+            top: 60px;
+        }
+
+        .lives-board {
+            top: 100px;
+        }
+        #leave-button {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 2rem;
+            color: red;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+        }
+
+        #leave-button:hover {
+            color: darkred;
+        }
+    </style>
+</head>
+<body>
+    <h1>Rhythm Game</h1>
+    <p>Press "A" and "D" to clear the blocks at the right time!</p>
+    <canvas id="gameCanvas"></canvas>
+    <div class="score-board">Score: 0</div>
+    <div class="combo-board">Combo: 0</div>
+    <div class="lives-board">Lives: 25</div>
+    <button id="leave-button" onclick="leaveGame()">X</button>
+    <script>
+ const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+
+canvas.width = 400;
+canvas.height = 800;
+const blockSize = 50;
+let baseSpeed = 3.1;
+let blockSpeed = baseSpeed;
+let blocks = [];
+let score = 0;
+let combo = 0;
+let gameRunning = true;
+let lives = 25;
+
+const keyMapping = ['A', 'D'];
+const hitLineY = canvas.height - 150;
+const dividerPositions = [100, 300];
+
+class Block {
+    constructor(x, key) {
+        this.x = x;
+        this.y = 0;
+        this.key = key;
+    }
+
+    move() {
+        this.y += blockSpeed;
+    }
+
+    draw() {
+        ctx.fillStyle = '#FF69B4';
+        ctx.shadowBlur = 15;
+        ctx.shadowColor = '#FF1493';
+        ctx.fillRect(this.x, this.y, blockSize, blockSize);
+        ctx.shadowBlur = 0;
+    }
+}
+
+let audio = new Audio('423162__osfx__wade-loopable.wav');
+let bpm = 86;
+let beatInterval = (60 / bpm) * 1000;
+
+function generateBlock() {
+    const key = keyMapping[Math.floor(Math.random() * keyMapping.length)];
+    const x = key === 'A' ? dividerPositions[0] : dividerPositions[1];
+    blocks.push(new Block(x, key));
+}
+
+function checkKeyPress(pressedKey) {
+    let hit = false;
+    for (let i = 0; i < blocks.length; i++) {
+        const block = blocks[i];
+        if (block.key === pressedKey && Math.abs(block.y - hitLineY) <= 20) { 
+            let multiplier = 1 + Math.floor(combo / 5);
+            score += 10 * multiplier;
+            combo += 1;
+            blocks.splice(i, 1);
+            hit = true;
+            break;
+        }
+    }
+    if (!hit) {
+        lives -= 1;
+        combo = 0;
+    }
+}
+
+document.addEventListener('keydown', (event) => {
+    if (!gameRunning) return;
+    let pressedKey = '';
+    if (event.key === 'a') pressedKey = 'A';
+    if (event.key === 'd') pressedKey = 'D';
+    if (pressedKey) checkKeyPress(pressedKey);
+});
+
+function updateGame() {
+    if (!gameRunning) return;
+    blocks.forEach(block => block.move());
+    blocks = blocks.filter(block => block.y < canvas.height);
+    document.querySelector('.score-board').innerText = 'Score: ' + score;
+    document.querySelector('.combo-board').innerText = 'Combo: ' + combo;
+    document.querySelector('.lives-board').innerText = 'Lives: ' + lives;
+}
+
+function drawGame() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.beginPath();
+    ctx.moveTo(0, hitLineY + 30);
+    ctx.lineTo(canvas.width, hitLineY + 30);
+    ctx.lineWidth = 4;
+    ctx.strokeStyle = '#FFF';
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(canvas.width / 2, 0);
+    ctx.lineTo(canvas.width / 2, canvas.height);
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+    ctx.stroke();
+    blocks.forEach(block => block.draw());
+}
+
+function gameLoop() {
+    updateGame();
+    drawGame();
+    requestAnimationFrame(gameLoop);
+}
+
+function triggerSpeedBoost() {
+    blockSpeed = baseSpeed * 2;
+    document.body.style.background = 
+        'linear-gradient(90deg, red, orange, yellow, green, blue, indigo, violet)';
+    
+    let speedText = document.createElement('div');
+    speedText.innerText = '2x Faster!';
+    speedText.style.position = 'absolute';
+    speedText.style.top = '50%';
+    speedText.style.left = '50%';
+    speedText.style.transform = 'translate(-50%, -50%)';
+    speedText.style.fontSize = '48px';
+    speedText.style.fontWeight = 'bold';
+    speedText.style.color = 'white';
+    speedText.style.textShadow = '2px 2px 10px rgba(0,0,0,0.7)';
+    speedText.id = 'speedBoostText';
+    document.body.appendChild(speedText);
+
+    setTimeout(() => {
+        blockSpeed = baseSpeed;
+        document.body.style.background = 'linear-gradient(135deg, #5c258d, #4389a2)';
+        document.getElementById('speedBoostText').remove();
+        scheduleNextBoost();
+    }, 2000);
+}
+
+
+function scheduleNextBoost() {
+    let randomTime = Math.random() * 20000 + 2000;
+    setTimeout(triggerSpeedBoost, randomTime);
+}
+ function leaveGame() {
+            if (confirm("Are you sure you want to leave the game?")) {
+                window.location.href = "index.html"; // Redirect to the main menu
+            }
+        }
+
+audio.play();
+setInterval(generateBlock, beatInterval);
+gameLoop();
+scheduleNextBoost();
+
+function checkGameOver() {
+    for (let i = 0; i < blocks.length; i++) {
+        if (blocks[i].y >= hitLineY + 50) {
+            lives -= 1;
+            blocks.splice(i, 1);
+            if (lives <= 0) {
+                gameRunning = false;
+                document.querySelector('.score-board').innerText = 'Game Over! Final Score: ' + score;
+                return;
+            }
+        }
+    }
+    requestAnimationFrame(checkGameOver);
+}
+checkGameOver();
+    </script>
+</body>
+</html>

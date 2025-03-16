@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Social Media Feed</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+
+        .feed-container {
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 10px;
+            overflow-y: auto;
+            height: 100vh;
+            background-color: white;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .post {
+            background-color: #ffffff;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+        }
+
+        .user-info img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+
+        .username {
+            font-weight: bold;
+        }
+
+        .post-text {
+            margin-top: 15px;
+            font-size: 16px;
+            color: #333;
+        }
+
+        .post-image {
+            width: 100%;
+            height: auto;
+            border-radius: 8px;
+            margin-top: 15px;
+        }
+
+        .post-actions {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 15px;
+            font-size: 14px;
+            color: #555;
+        }
+
+        .post-actions button {
+            background: none;
+            border: none;
+            color: inherit;
+            font: inherit;
+            cursor: pointer;
+        }
+
+        .post-actions button:hover {
+            color: #007bff;
+        }
+
+        .load-more {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 16px;
+            color: #007bff;
+            cursor: pointer;
+        }
+
+        .load-more:hover {
+            text-decoration: underline;
+        }
+                #leave-button {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 2rem;
+            color: red;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+        }
+
+        #leave-button:hover {
+            color: darkred;
+        }
+        
+    </style>
+</head>
+<body>
+    <button id="leave-button" onclick="leaveGame()">X</button>
+    <div class="feed-container" id="feed">
+        <!-- Posts will be dynamically added here -->
+    </div>
+
+    <div class="load-more" id="load-more">Load More...</div>
+
+    <script>
+        const feedContainer = document.getElementById('feed');
+        const loadMoreButton = document.getElementById('load-more');
+       
+        // Function to create a post element
+        function createPost(username, text, imageSrc) {
+            const post = document.createElement('div');
+            post.classList.add('post');
+
+            post.innerHTML = `
+                <div class="user-info">
+                    <img src="https://images-wixmp-ed30a86b8c4ca887773594c2.wixmp.com/f/a0965bfa-4ce9-4376-9400-23be1b80671e/d5c7rhk-b5cec4c4-e569-425c-b897-1ed747a596f2.jpg/v1/fill/w_900,h_938,q_75,strp/facebook_profile_image_by_edgarsvensson_d5c7rhk-fullview.jpg?token=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1cm46YXBwOjdlMGQxODg5ODIyNjQzNzNhNWYwZDQxNWVhMGQyNmUwIiwiaXNzIjoidXJuOmFwcDo3ZTBkMTg4OTgyMjY0MzczYTVmMGQ0MTVlYTBkMjZlMCIsIm9iaiI6W1t7ImhlaWdodCI6Ijw9OTM4IiwicGF0aCI6IlwvZlwvYTA5NjViZmEtNGNlOS00Mzc2LTk0MDAtMjNiZTFiODA2NzFlXC9kNWM3cmhrLWI1Y2VjNGM0LWU1NjktNDI1Yy1iODk3LTFlZDc0N2E1OTZmMi5qcGciLCJ3aWR0aCI6Ijw9OTAwIn1dXSwiYXVkIjpbInVybjpzZXJ2aWNlOmltYWdlLm9wZXJhdGlvbnMiXX0.zFFSNszo5jPnsQlkYBnr7_aNtAQK6PBaWS981z3EHLk" alt="User Avatar">
+                    <span class="username">${username}</span>
+                </div>
+                <div class="post-text">${text}</div>
+                <img src="${imageSrc}" alt="Post Image" class="post-image">
+                <div class="post-actions">
+                    <button>👍 Like</button>
+                    <button>💬 Comment</button>
+                    <button>🔗 Share</button>
+                </div>
+            `;
+
+            return post;
+        }
+
+        // Function to shuffle the posts array
+        function shufflePosts(posts) {
+            for (let i = posts.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [posts[i], posts[j]] = [posts[j], posts[i]]; // Swap elements
+            }
+        }
+
+        // Function to load 3 random posts
+        function loadMorePosts() {
+            const posts = [
+                { username: 'Brendan Hartley', text: 'Just had an amazing workout! 💪 #fitness #health', imageSrc: 'https://via.placeholder.com/600x300' },
+                { username: 'Augusto Farfus', text: 'Sometimes the simplest moments are the ones that mean the most. Grateful for today, the little things, and this moment of peace. 🌟💫 #Gratitude #SimpleJoys #CozyVibes', imageSrc: 'https://images.stockcake.com/public/e/0/7/e077b8de-e7d7-427b-9dcd-7b57a766d759_large/steaming-morning-coffee-stockcake.jpg' },
+                { username: 'Jane Heathers', text: 'Loving the weather today! Perfect for a walk. ☀️🚶‍♀️ #nature #sunshine', imageSrc: 'https://via.placeholder.com/600x300' },
+                { username: 'Alex Brown', text: 'Just finished reading a great book! 📚 Anyone else read "The Silent Patient"? #bookworm', imageSrc: 'https://via.placeholder.com/600x300' },
+                { username: 'Sarah Quinn', text: 'When the world feels overwhelming, sometimes you just need to take a deep breath and enjoy the quiet moments. #peace #mindfulness', imageSrc: 'https://via.placeholder.com/600x300' },
+                { username: 'Ethan Harper', text: 'Woke up feeling grateful for all the small blessings today. 💖 #Gratitude #Blessed', imageSrc: 'https://st2.depositphotos.com/1763191/8121/v/450/depositphotos_81215306-stock-illustration-blessful-emotion-facial-expression.jpg' },
+                { username: 'Maya Patel', text: 'Sometimes, the best therapy is a walk through the park. 🌳 #naturetherapy', imageSrc: 'https://via.placeholder.com/600x300' },
+                { username: 'Oliver Brooks', text: 'Just had the most incredible conversation. It’s amazing how much wisdom one can find in a simple chat. #Inspiration', imageSrc: 'https://s.wsj.net/public/resources/images/RV-AI225A_SMART_DV_20120921170426.jpg' },
+                { username: 'Ava Johnson', text: 'The beauty of the sunset reminds me that even the toughest days have their bright moments. 🌅 #SunsetVibes', imageSrc: 'https://via.placeholder.com/600x300' },
+                { username: 'Liam Moore', text: 'Sometimes, it’s the quiet moments that hold the most peace. #Stillness #Mindfulness', imageSrc: 'https://via.placeholder.com/600x300' },
+                { username: 'Emily Davis', text: 'Every day is a new beginning. Let’s make today count! 💪 #MotivationMonday', imageSrc: 'https://via.placeholder.com/600x300' },
+                { username: 'Daniel Williams', text: 'Gratitude turns what we have into enough. #Grateful #Appreciation', imageSrc: 'https://c8.alamy.com/comp/2AR0X91/charming-upbeat-smiling-man-thanking-from-bottom-of-heart-press-hands-to-chest-and-smiling-cute-as-expressing-gratitude-for-cool-gift-or-appreciate-2AR0X91.jpg' },
+                { username: 'Sophie Taylor', text: 'The world is full of beautiful things. All we need to do is open our eyes and our hearts. #BeautyEverywhere', imageSrc: 'https://via.placeholder.com/600x300' },
+                { username: 'Augusto Farfus', text: 'Sometimes the simplest moments are the ones that mean the most. Grateful for today, the little things, and this moment of peace. 🌟💫 #Gratitude #SimpleJoys #CozyVibes', imageSrc: 'https://images.stockcake.com/public/e/0/7/e077b8de-e7d7-427b-9dcd-7b57a766d759_large/steaming-morning-coffee-stockcake.jpg' },
+                { username: 'Jane Heathers', text: 'Loving the weather today! Perfect for a walk. ☀️🚶‍♀️ #nature #sunshine', imageSrc: 'https://via.placeholder.com/600x300' },
+                { username: 'Alex Brown', text: 'Just finished reading a great book! 📚 Anyone else read "The Silent Patient"? #bookworm', imageSrc: 'https://via.placeholder.com/600x300' },
+                { username: 'Sarah Quinn', text: 'When the world feels overwhelming, sometimes you just need to take a deep breath and enjoy the quiet moments. #peace #mindfulness', imageSrc: 'https://via.placeholder.com/600x300' },
+                { username: 'Ethan Harper', text: 'Woke up feeling grateful for all the small blessings today. 💖 #Gratitude #Blessed', imageSrc: 'https://via.placeholder.com/600x300' },
+                { username: 'Maya Patel', text: 'Sometimes, the best therapy is a walk through the park. 🌳 #naturetherapy', imageSrc: 'https://via.placeholder.com/600x300' },
+                { username: 'Oliver Gamble', text: 'Just had the most incredible conversation. It’s amazing how much wisdom one can find in a simple chat. #Inspiration', imageSrc: 'https://s.wsj.net/public/resources/images/RV-AI225A_SMART_DV_20120921170426.jpg' },
+                { username: 'Ava Johnson', text: 'The beauty of the sunset reminds me that even the toughest days have their bright moments. 🌅 #SunsetVibes', imageSrc: 'https://via.placeholder.com/600x300' },
+                { username: 'Liam Moore', text: 'Sometimes, it’s the quiet moments that hold the most peace. #Stillness #Mindfulness', imageSrc: 'https://via.placeholder.com/600x300' },
+                { username: 'Emily Davis', text: 'Every day is a new beginning. Let’s make today count! 💪 #MotivationMonday', imageSrc: 'https://www.ampersandintegrative.com/wp-content/uploads/2022/01/Screen-Shot-2022-01-19-at-8.46.01-AM.png' },
+                { username: 'Daniel Williams', text: 'Gratitude turns what we have into enough. #Grateful #Appreciation', imageSrc: 'https://thumbs.dreamstime.com/b/grateful-calm-african-man-holds-hands-chest-feels-love-gratitude-honesty-dark-skinned-guy-thanks-isolated-pink-studio-141533589.jpg' },
+                { username: 'Sophie Taylor', text: 'The world is full of beautiful things. All we need to do is open our eyes and our hearts. #BeautyEverywhere', imageSrc: 'https://via.placeholder.com/600x300' },
+                { username: 'Benjamin King', text: 'A random act of kindness can change someone’s entire day. Let’s spread positivity! #BeKind', imageSrc: 'https://via.placeholder.com/600x300' },
+                { username: 'Sophia Scott', text: 'Chasing dreams with a heart full of hope and hands ready to work. ✨ #DreamBig', imageSrc: 'https://via.placeholder.com/600x300' },
+                { username: 'Max Harris', text: 'Never underestimate the power of a good cup of coffee and a kind word. #SimplePleasures', imageSrc: 'https://via.placeholder.com/600x300' },
+                { username: 'Isabella Martinez', text: 'Surround yourself with the people who make you laugh, because life is too short to be anything but happy. 😄 #Happiness #GoodVibes', imageSrc: 'https://via.placeholder.com/600x300' },
+                { username: 'Lucas Robinson', text: 'Chasing sunsets and good vibes. 🌅 #SunsetChaser #GoodVibesOnly', imageSrc: 'https://via.placeholder.com/600x300' },
+                { username: 'Charlotte Green', text: 'In a world where you can be anything, be kind. #SpreadLove #KindnessMatters', imageSrc: 'https://media.gettyimages.com/id/1462659206/photo/portrait-of-a-man-breathing-fresh-air-in-nature.jpg?s=612x612&w=gi&k=20&c=5GmZX3Mn6W3H3us5Fd1S28557EO5MC5WPq7kDtIkIvw=' },
+                { username: 'Jacob Clark', text: 'Every new day brings new opportunities. Let’s seize them! 💡 #MondayMotivation', imageSrc: 'https://via.placeholder.com/600x300' },
+                { username: 'Amelia Lee', text: 'The best way to predict your future is to create it. #Motivation #FutureGoals', imageSrc: 'https://via.placeholder.com/600x300' },
+                { username: 'William Carter', text: 'Sometimes, you just have to take a step back, breathe, and enjoy the moment. #Relax #LiveInTheMoment', imageSrc: 'https://www.stockvault.net/data/2016/12/02/217707/preview16.jpg' },
+                { username: 'Chloe Adams', text: 'Grateful for the little moments that make life beautiful. #SimpleJoys', imageSrc: 'https://via.placeholder.com/600x300' },
+                { username: 'Evan Collins', text: 'The road to success is always under construction. #KeepGoing', imageSrc: 'https://thumbs.dreamstime.com/b/businesswoman-walking-to-success-looking-highway-skyscraper-cityscape-38871251.jpg' },
+                { username: 'Ella Turner', text: 'Take the time to appreciate the beauty around you. There’s magic everywhere. ✨ #MagicInTheEveryday', imageSrc: 'https://via.placeholder.com/600x300' },
+                { username: 'Ryan Lewis', text: 'Don’t wait for opportunity. Create it. #Opportunities #Success', imageSrc: 'https://media.istockphoto.com/id/1686497935/photo/business-man-running-on-arrow-shaped-bridge-to-the-light.jpg?s=612x612&w=0&k=20&c=vaKIx8gelKmSGvWIAgTCH_2XjU5vSJkTsvFwObWJcVw=' },
+                { username: 'Aidan White', text: 'Life is 10% what happens to us and 90% how we react to it. #Mindset', imageSrc: 'https://via.placeholder.com/600x300' },
+                { username: 'Mason Hall', text: 'The best time for new beginnings is now. #NewBeginnings #FreshStart', imageSrc: 'https://via.placeholder.com/600x300' },
+                { username: 'Zoe Wright', text: 'A beautiful soul can change the world. Be that person. #PositiveEnergy', imageSrc: 'https://via.placeholder.com/600x300' },
+                { username: 'Samuel King', text: 'Happiness is not a destination, it’s a way of life. 🌻 #Happiness', imageSrc: 'https://via.placeholder.com/600x300' },
+              { username: 'Lily Foster', text: 'Sometimes, the most powerful thing you can do is simply show up. 💛 #BePresent', imageSrc: 'https://static.vecteezy.com/system/resources/thumbnails/007/069/006/small/top-view-on-a-group-of-businessman-and-businesswoman-having-a-meeting-and-making-a-business-commitment-photo.jpg' },
+            { username: 'Jack Roberts', text: 'The key to happiness is letting go of what you cannot change. #Peace #Release', imageSrc: 'https://via.placeholder.com/600x300' },
+            { username: 'Olivia Miller', text: 'Embrace the chaos. It’s in the unpredictability of life that we grow the most. #EmbraceTheJourney', imageSrc: 'https://via.placeholder.com/600x300' },
+            { username: 'Henry Davis', text: 'Gratitude is the best attitude to start each day. 🌅 #GratefulHeart', imageSrc: 'https://via.placeholder.com/600x300' },
+            { username: 'Maya Sullivan', text: 'Let today be the day you choose happiness. Don’t wait for it to find you. #ChooseJoy', imageSrc: 'https://media.istockphoto.com/id/871694732/photo/finding-happiness-in-simple-pleasures.jpg?s=1024x1024&w=is&k=20&c=WsafNpl-GN0SWhHVIavcYtcrjctAJ4eLZBdglUHJTME=' },
+            { username: 'Noah Mitchell', text: 'A little kindness can go a long way. Be the reason someone smiles today. #SpreadKindness', imageSrc: 'https://via.placeholder.com/600x300' },
+            { username: 'Charlotte Hayes', text: 'It’s not about waiting for the storm to pass, it’s about learning to dance in the rain. 🌧 #Resilience', imageSrc: 'https://thumbs.dreamstime.com/z/embracing-precious-moment-loving-couple-enjoying-day-out-together-embracing-precious-moment-loving-couple-enjoying-day-268598552.jpg' },
+            { username: 'Leo Caldart', text: 'The road less traveled is often the most rewarding. Take the leap! #AdventureAwaits', imageSrc: 'https://via.placeholder.com/600x300' },
+            { username: 'Ava Parker', text: 'Sometimes, you have to be your own hero. 💪 #SelfLove #Strength', imageSrc: 'https://via.placeholder.com/600x300' },
+            { username: 'James Robinson', text: 'Take a deep breath and remind yourself that you are enough. #SelfWorth', imageSrc: 'https://via.placeholder.com/600x300' },
+            { username: 'Ella Brooks', text: 'Life is beautiful when we take the time to appreciate its simple moments. 🍃 #Gratitude #LifeIsGood', imageSrc: 'https://media.gettyimages.com/id/1322494070/photo/happy-woman-inhaling-at-home.jpg?s=612x612&w=gi&k=20&c=AES1t-quNbB8D0QirWYsVqW-_UseuC8cm4kTcmdt2mc=' },
+            { username: 'Aiden Harris', text: 'Sometimes, the best way to find yourself is to lose yourself in the service of others. 💖 #Kindness #GivingBack', imageSrc: 'https://via.placeholder.com/600x300' },
+            { username: 'Sophie Wright', text: 'It’s not the destination, but the journey that matters most. #KeepGoing #LifeIsAJourney', imageSrc: 'https://via.placeholder.com/600x300' },
+            { username: 'Isaac Scott', text: 'The sun sets, but it always rises again. Every day is a fresh start. 🌅 #NewDayNewStart', imageSrc: 'https://via.placeholder.com/600x300' },
+            { username: 'Mila Carter', text: 'You are never too old to set another goal or to dream a new dream. ✨ #KeepDreaming', imageSrc: 'https://via.placeholder.com/600x300' },
+            { username: 'Henry Allen', text: 'Don’t be afraid to fail. Be afraid of not trying. #NoFear #TryAgain', imageSrc: 'https://www.shutterstock.com/image-photo/educational-concepts-math-test-full-260nw-583271959.jpg' },
+            { username: 'Lena Cooper', text: 'It’s okay to not have everything figured out. Just take it one step at a time. #ProgressNotPerfection', imageSrc: 'https://via.placeholder.com/600x300' },
+            { username: 'Isaiah Lopez', text: 'Courage doesn’t always roar. Sometimes it’s the quiet voice at the end of the day that says, "I’ll try again tomorrow." #Courage #TryAgain', imageSrc: 'https://media.gettyimages.com/id/484778696/photo/mountain-climbing.jpg?s=612x612&w=gi&k=20&c=PxPeq73BSDSCuauB2X3CiRn89o0-An0DmVEhgvGe4P8=' },
+            { username: 'Harper Lee', text: 'The beauty of life lies in its imperfections. Let go of perfection and embrace authenticity. #RealLife', imageSrc: 'https://via.placeholder.com/600x300' },
+            { username: 'Caleb White', text: 'Success is not the key to happiness. Happiness is the key to success. #BeHappy #LiveFully', imageSrc: 'https://via.placeholder.com/600x300' },
+                { username: 'Mila Lopez', text: 'Success is not final, failure is not fatal: It is the courage to continue that counts. #Success #Perseverance', imageSrc: 'https://via.placeholder.com/600x300' }
+
+            ];
+
+            // Shuffle the posts and get the first 3 posts
+            shufflePosts(posts);
+            const postsToShow = posts.slice(0, 3);
+
+            // Append the posts to the feed container
+            postsToShow.forEach(postData => {
+                const post = createPost(postData.username, postData.text, postData.imageSrc);
+                feedContainer.appendChild(post);
+            });
+        }
+
+        // Load initial posts
+        loadMorePosts();
+
+        // Event listener for Load More button
+        loadMoreButton.addEventListener('click', () => {
+            loadMorePosts();
+        });
+         function leaveGame() {
+            if (confirm("Are you sure you want to leave the game?")) {
+                window.location.href = "index.html"; // Redirect to the main menu
+            }
+        }
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,313 @@
+ <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clicker Game - Waste More Time</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background: #f0f4f8;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            position: relative;
+        }
+
+        h1 {
+            font-size: 2rem;
+            color: #333;
+        }
+
+        .time-tracker, .money-display, .stock-price, .investment-display {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-top: 10px;
+            color: #764ba2;
+        }
+
+        .click-area {
+            margin-top: 20px;
+            cursor: pointer;
+            transition: transform 0.1s ease-in-out;
+        }
+
+        .click-area img {
+            width: 150px;
+        }
+
+        .click-area:active {
+            transform: scale(0.9);
+        }
+
+        .shop, .investment, .withdraw {
+            margin-top: 20px;
+        }
+
+        .shop button, .investment button, .withdraw button {
+            padding: 10px;
+            font-size: 1rem;
+            background: #764ba2;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+            transition: 0.2s;
+        }
+
+        .shop button:hover, .investment button:hover, .withdraw button:hover {
+            background: #5a3e91;
+        }
+
+        /* Popup Styles */
+        .popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            display: none;
+            z-index: 999;
+        }
+
+        .popup button {
+            padding: 10px;
+            font-size: 1rem;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .popup button:hover {
+            background: #45a049;
+        }
+
+        .popup .close-button {
+            background-color: #f44336;
+        }
+
+        /* Leave Button */
+        #leave-button {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 2rem;
+            color: red;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+        }
+
+        #leave-button:hover {
+            color: darkred;
+        }
+
+        /* Side Quotes */
+        .side-quotes {
+            position: fixed;
+            top: 20%;
+            right: 0;
+            width: 300px;
+            padding: 10px;
+            background-color: #ffffff;
+            box-shadow: -2px 0 5px rgba(0, 0, 0, 0.2);
+            font-size: 1rem;
+            color: #333;
+            display: none; /* Initially hidden */
+            text-align: center;
+            border-radius: 10px;
+            opacity: 0;
+            transition: opacity 1s ease-in-out;
+        }
+
+        .side-quotes.fade-in {
+            display: block;
+            opacity: 1;
+        }
+
+        .side-quotes.fade-out {
+            opacity: 0;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Leave Button -->
+    <button id="leave-button" onclick="leaveGame()">X</button>
+
+    <h1>Money Clicker</h1>
+    <p class="time-tracker">Time Wasted: <span id="timer">0</span> seconds</p>
+    <p class="money-display">Money: $<span id="money">0</span></p>
+    <p class="stock-price">Stock Price: $<span id="stock-price">100</span></p>
+    <p class="investment-display">Investment: $<span id="investment">0</span></p>
+
+    <div class="click-area" onclick="earnMoney()">
+        <img src="https://cdn-icons-png.flaticon.com/512/2921/2921222.png" alt="Money Icon">
+    </div>
+
+    <div class="shop">
+        <button onclick="buyUpgrade()">Buy Upgrade ($50) - +$5 per click</button>
+    </div>
+
+    <div class="investment">
+        <input type="number" id="investment-amount" placeholder="Amount to invest">
+        <button onclick="investMoney()">Invest into Stocks</button>
+    </div>
+
+    <div class="withdraw">
+        <button onclick="withdrawMoney()">Withdraw Investment</button>
+    </div>
+
+    <!-- Side Quotes -->
+    <div id="side-quote" class="side-quotes"></div>
+
+    <!-- Popup -->
+    <div id="popup" class="popup">
+        <p id="popup-message"></p>
+        <button id="accept-offer" onclick="acceptOffer()">Accept</button>
+        <button class="close-button" onclick="closePopup()">Close</button>
+    </div>
+
+    <script>
+        // List of quotes
+        const quotes = [
+            "Success is the sum of small efforts, repeated day in and day out.",
+            "The future depends on what we do in the present.",
+            "The only limit to our realization of tomorrow is our doubts of today.",
+            "It always seems impossible until it's done.",
+            "Do one thing every day that scares you.",
+            "Success is not final, failure is not fatal: It is the courage to continue that counts.",
+            "Don’t watch the clock; do what it does. Keep going.",
+            "The only way to do great work is to love what you do."
+        ];
+
+        // Load data from localStorage
+        let stockPrice = localStorage.getItem("stockPrice") ? Math.round(parseFloat(localStorage.getItem("stockPrice"))) : 100;
+        let investment = localStorage.getItem("investment") ? Math.round(parseFloat(localStorage.getItem("investment"))) : 0;
+        let money = localStorage.getItem("money") ? Math.round(parseInt(localStorage.getItem("money"))) : 0;
+        let earningsPerClick = localStorage.getItem("earningsPerClick") ? Math.round(parseInt(localStorage.getItem("earningsPerClick"))) : 1;
+        let inflation = localStorage.getItem("inflation") ? parseInt(localStorage.getItem("inflation")) : 0;
+
+        document.getElementById("timer").innerText = 0;
+        document.getElementById("money").innerText = Math.round(money);
+        document.getElementById("stock-price").innerText = stockPrice;
+        document.getElementById("investment").innerText = Math.round(investment * stockPrice);
+
+        // Show random quote every 4-5 seconds
+        function showRandomQuote() {
+            const randomQuote = quotes[Math.floor(Math.random() * quotes.length)];
+            const quoteElement = document.getElementById("side-quote");
+
+            // Display the quote with fade-in effect
+            quoteElement.innerText = randomQuote;
+            quoteElement.classList.add("fade-in");
+            quoteElement.classList.remove("fade-out");
+
+            // Hide the quote after 8 seconds (fade out)
+            setTimeout(() => {
+                quoteElement.classList.add("fade-out");
+                quoteElement.classList.remove("fade-in");
+            }, 8000); // 8 seconds to fade out
+        }
+
+        // Call showRandomQuote every 4-5 seconds
+        setInterval(showRandomQuote, Math.random() * (5000 - 4000) + 4000);
+
+        // Earn money when the user clicks
+        function earnMoney() {
+            money += earningsPerClick;
+            document.getElementById("money").innerText = Math.round(money); // Round money display
+            localStorage.setItem("money", money);
+        }
+
+        // Buy upgrade to increase earnings per click
+        function buyUpgrade() {
+            let upgradeCost = 50 + inflation;
+            if (money >= upgradeCost) {
+                money -= upgradeCost;
+                earningsPerClick += 5;
+                inflation += 25;
+                document.getElementById("money").innerText = Math.round(money); // Round money display
+                localStorage.setItem("money", money);
+                localStorage.setItem("earningsPerClick", earningsPerClick);
+                localStorage.setItem("inflation", inflation);
+            } else {
+                alert("Not enough money!");
+            }
+        }
+
+        // Invest money into stocks
+        function investMoney() {
+            let amount = parseFloat(document.getElementById("investment-amount").value);
+            if (amount > 0 && amount <= money) {
+                money -= amount;
+                investment += amount / stockPrice;
+                document.getElementById("money").innerText = Math.round(money); // Round money display
+                document.getElementById("investment").innerText = Math.round(investment * stockPrice);
+                localStorage.setItem("money", money);
+                localStorage.setItem("investment", investment);
+            } else {
+                alert("Invalid amount or insufficient funds!");
+            }
+        }
+        function updateStockPrice() {
+    let change = (Math.random() * 10 - 5).toFixed(2); // Random change between -5 and +5
+    stockPrice = Math.max(1, (stockPrice + parseFloat(change)).toFixed(2)); // Ensure stock price stays above 1
+    document.getElementById("stock-price").innerText = stockPrice;
+    document.getElementById("investment").innerText = Math.round(investment * stockPrice);
+    localStorage.setItem("stockPrice", stockPrice);
+}
+
+// Update stock price every 5 seconds
+setInterval(updateStockPrice, 5000);
+
+
+        // Withdraw investment
+        function withdrawMoney() {
+            let totalValue = investment * stockPrice;
+            money += totalValue;
+            investment = 0;
+            document.getElementById("money").innerText = Math.round(money); // Round money display
+            document.getElementById("investment").innerText = "0";
+            localStorage.setItem("money", money);
+            localStorage.setItem("investment", investment);
+        }
+
+        // Leave game and go back to the main menu
+        function leaveGame() {
+            if (confirm("Are you sure you want to leave the game?")) {
+                window.location.href = "index.html"; // Replace with your actual main menu URL
+            }
+        }
+
+        // Time tracker
+        let seconds = localStorage.getItem("timeWasted") ? parseInt(localStorage.getItem("timeWasted")) : 0; // Load time from localStorage
+        document.getElementById("timer").innerText = seconds; // Display the initial time
+
+        function updateTimer() {
+            seconds++;https://www.onlinegdb.com/#tab-stdin
+            document.getElementById("timer").innerText = seconds;
+            localStorage.setItem("timeWasted", seconds); // Save the time to localStorage every second
+        }
+
+        // Update time every second
+        setInterval(updateTimer, 1000);
+    </script>
+
+</body>
+</html>
